@@ -3,13 +3,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useTheme } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 
@@ -78,8 +78,7 @@ export default function Resumen() {
       0
     );
   }, [filteredTransactions]);
-
-  // 🔹 Agrupar por categoría
+  
   const categorySummary = useMemo(() => {
     const summary: Record<string, number> = {
       Comida: 0,

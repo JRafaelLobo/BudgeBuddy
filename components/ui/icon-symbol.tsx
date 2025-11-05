@@ -24,6 +24,7 @@ const MAPPING = {
   'plus': 'add',
   'book': 'menu-book',
   'person.fill': 'person',
+  'chart.bar.fill': 'bar-chart',
 } as IconMapping;
 
 /**

@@ -178,6 +178,9 @@ export default function FinanceIndex() {
               {/* Descripción y fecha */}
               <View>
                 <Text style={[styles.txDesc, { color: colors.text }]}>
+                  {item.category}
+                </Text>
+                <Text style={[styles.txDesc, { color: colors.text }]}>
                   {item.description}
                 </Text>
                 <Text style={[styles.txDate, { color: colors.text }]}>

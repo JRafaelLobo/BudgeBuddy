@@ -44,6 +44,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="Resumen"
+        options={{
+          title: 'Resumen',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="chart.bar.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="usuario"
         options={{
           title: 'Usuario',
@@ -52,6 +61,7 @@ export default function TabLayout() {
           ),
         }}
       />
+
     </Tabs>
   );
 }
