@@ -1,23 +1,31 @@
+import { User } from '@/constants/types';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useTheme } from '@react-navigation/native';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    Image,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
-const STORAGE_KEY = '@user_profile';
+const STORAGE_KEY = '@user';
 
+const initial: User = {
+  id: 'und',
+  email: '',
+  password: '',
+  birthDate: null,
+  status: null,
+  name: '',
+};
 export default function ProfileIndex() {
   const { colors, dark } = useTheme();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<User | null>(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -27,16 +35,7 @@ export default function ProfileIndex() {
           if (json) {
             setProfile(JSON.parse(json));
           } else {
-            // Datos iniciales por defecto
-            const initial = {
-              name: 'Matías López',
-              email: 'matias@example.com',
-              age: 18,
-              country: 'Honduras',
-              image:
-                'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-            };
-            setProfile(initial);
+            setProfile(null);
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
           }
         } catch (e) {
@@ -57,6 +56,7 @@ export default function ProfileIndex() {
           try {
             await AsyncStorage.removeItem(STORAGE_KEY);
             setProfile(null);
+            router.replace('/(auth)/login')
           } catch (e) {
             console.error('Error eliminando perfil', e);
           }
@@ -75,7 +75,7 @@ export default function ProfileIndex() {
         </Text>
         <TouchableOpacity
           style={[styles.button, { backgroundColor: colors.primary, marginTop: 20 }]}
-          onPress={() => router.push('/(tabs)/profile/edit')}
+          onPress={() => router.push('/(tabs)/finance')}
         >
           <Text style={[styles.buttonText, { color: colors.background }]}>
             Crear Perfil
@@ -94,24 +94,34 @@ export default function ProfileIndex() {
       </View>
 
       <View style={styles.profileCard}>
-        <Image source={{ uri: profile.image }} style={styles.avatar} />
+        <Text style={[styles.name, { color: colors.text }]}>
+          🧑 {profile.name || 'Default_user'}
+        </Text>
 
-        <Text style={[styles.name, { color: colors.text }]}>{profile.name}</Text>
         <Text style={[styles.info, { color: colors.text }]}>
-          📧 {profile.email}
+          📧 {profile.email || 'Sin correo'}
         </Text>
+
         <Text style={[styles.info, { color: colors.text }]}>
-          🎂 Edad: {profile.age}
+          💼 Estado laboral/educativo: {profile.status || 'No definido'}
         </Text>
+
         <Text style={[styles.info, { color: colors.text }]}>
-          🌎 País: {profile.country}
+          📅 Fecha de nacimiento:{' '}
+          {profile.birthDate
+            ? new Date(profile.birthDate).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric',
+            })
+            : 'No definida'}
         </Text>
       </View>
 
       <View style={styles.buttonsRow}>
         <TouchableOpacity
           style={[styles.button, { backgroundColor: colors.primary }]}
-          onPress={() => router.push('/(tabs)/profile/edit')}
+          onPress={() => router.push('/(tabs)/finance')}
         >
           <Text style={[styles.buttonText, { color: colors.background }]}>
             Editar

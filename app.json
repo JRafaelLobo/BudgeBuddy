@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "gen2",
+    "name": "BudgetBuddy",
     "slug": "gen2",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logoCerdito.png",
     "scheme": "gen2",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

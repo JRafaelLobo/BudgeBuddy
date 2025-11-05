@@ -1,8 +1,9 @@
+import { Transaction, User } from '@/constants/types';
 import { MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useTheme } from '@react-navigation/native';
 import { router } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -15,13 +16,42 @@ import {
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
-
 const screenWidth = Dimensions.get('window').width - 32;
-const STORAGE_KEY = '@transactions';
-
+const STORAGE_KEY_USER = '@user';
+const initialUser: User = {
+  id: 'und',
+  email: '',
+  password: '',
+  birthDate: null,
+  status: null,
+  name: '',
+}
 export default function FinanceIndex() {
   const { colors, dark } = useTheme();
+  const [profile, setProfile] = useState<User>(initialUser);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
+  useFocusEffect(
+    useCallback(() => {
+      const loadUser = async () => {
+        try {
+          const json = await AsyncStorage.getItem(STORAGE_KEY_USER);
+          if (json) {
+            setProfile(JSON.parse(json));
+          } else {
+            await AsyncStorage.setItem(STORAGE_KEY_USER, JSON.stringify(initialUser));
+            setProfile(initialUser);
+          }
+        } catch (e) {
+          console.error('Error cargando usuario:', e);
+        }
+      };
+      loadUser();
+    }, [])
+  );
+
+  // 🔹 Clave dependiente del usuario
+  const STORAGE_KEY_TRANSACTIONS = `@transactions_${profile?.id || 'und'}`;
   const handleDelete = (id: string) => {
     Alert.alert(
       'Eliminar transacción',
@@ -35,7 +65,7 @@ export default function FinanceIndex() {
             try {
               const updatedTransactions = transactions.filter(t => t.id !== id);
               setTransactions(updatedTransactions);
-              await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTransactions));
+              await AsyncStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(updatedTransactions));
 
               console.log('Transacción eliminada:', id);
             } catch (e) {
@@ -47,25 +77,20 @@ export default function FinanceIndex() {
     );
   };
 
-  const [transactions, setTransactions] = useState<any[]>([]);
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
+      if (!profile?.id || profile.id === 'und') return; // aún no hay usuario
+
       const loadTransactions = async () => {
         try {
-          const json = await AsyncStorage.getItem(STORAGE_KEY);
-          if (json != null) {
+          const key = `@transactions_${profile.id}`;
+          const json = await AsyncStorage.getItem(key);
+
+          if (json) {
             setTransactions(JSON.parse(json));
           } else {
-            const initial = [
-              { id: '1', type: 'income', amount: 1200, description: 'Sueldo', date: new Date(Date.now() - 86400000 * 5).toISOString() },
-              { id: '2', type: 'expense', amount: 200, description: 'Sueldo', date: new Date(Date.now() - 86400000 * 4).toISOString() },
-              { id: '3', type: 'income', amount: 5000, description: 'Sueldo', date: new Date(Date.now() - 86400000 * 3).toISOString() },
-              { id: '4', type: 'income', amount: 2000, description: 'Sueldo', date: new Date(Date.now() - 86400000 * 2).toISOString() },
-              { id: '5', type: 'income', amount: 1200, description: 'Sueldo', date: new Date(Date.now() - 86400000 * 1).toISOString() },
-              { id: '6', type: 'expense', amount: 3000, description: 'Supermercado', date: new Date().toISOString() },
-            ];
-            setTransactions(initial);
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+            setTransactions([]);
+            await AsyncStorage.setItem(key, JSON.stringify([]));
           }
         } catch (e) {
           console.error('Error cargando transacciones', e);
@@ -73,8 +98,9 @@ export default function FinanceIndex() {
       };
 
       loadTransactions();
-    }, [])
+    }, [profile.id]) // se ejecuta cuando cambia el usuario
   );
+
 
   const balance = useMemo(() => {
     return transactions.reduce(

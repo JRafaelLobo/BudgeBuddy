@@ -1,6 +1,6 @@
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useNavigation } from '@react-navigation/native';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -16,8 +16,9 @@ import {
 
 const STORAGE_KEY = '@users_profile';
 const STORAGE_USER_KEY = '@user'
+
+
 export default function RegisterScreen() {
-    const navigation = useNavigation();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -37,7 +38,7 @@ export default function RegisterScreen() {
         }
 
         try {
-            const newTransaction = {
+            const newUser = {
                 id: Date.now().toString(),
                 email: email,
                 password: password,
@@ -45,15 +46,17 @@ export default function RegisterScreen() {
                 status: status
             };
             const json = await AsyncStorage.getItem(STORAGE_KEY);
-            const currentTransactions = json ? JSON.parse(json) : [];
-            const newUsuarios = [...currentTransactions, newTransaction];
+            const currentsUsuarios = json ? JSON.parse(json) : [];
+            const newUsuarios = [...currentsUsuarios, newUser];
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newUsuarios));
-            console.log('Transacción guardada:', newTransaction);
+            await AsyncStorage.setItem(STORAGE_USER_KEY, JSON.stringify(newUser))
+            console.log('Transacción guardada:', newUser);
             Alert.alert('Éxito', 'Cuenta creada correctamente');
+            router.replace('/(tabs)/finance');
         } catch (e) {
             console.error('Error guardando transacción', e);
         }
-        router.replace('/(tabs)/finance')
+
         console.log({ email, password, birthDate, status });
     };
 

@@ -1,3 +1,5 @@
+import { User } from '@/constants/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -7,25 +9,42 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
+
+const STORAGE_KEY = '@users_profile';
+const STORAGE_USER_KEY = '@user'
 
 export default function LoginScreen() {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleLogin = () => {
-        if (!email || !password) {
-            Alert.alert('Error', 'Por favor completa todos los campos');
-            return;
-        }
+    const handleLogin = async () => {
+        try {
+            const json = await AsyncStorage.getItem(STORAGE_KEY);
+            const currentUsuarios = json ? JSON.parse(json) : [];
 
-        if (email === 'user@test.com' && password === '1234') {
-            Alert.alert('Éxito', 'Has iniciado sesión correctamente');
-            router.replace('/(tabs)/finance');
-        } else {
-            Alert.alert('Error', 'Usuario o contraseña incorrectos');
+            const user = currentUsuarios.find(
+                (u: User) => u.email === email && u.password === password
+            );
+
+            if ((email === 'user@test.com' && password === '1234') || user) {
+                const currentUser = user || { email, password, name: 'Usuario de prueba' };
+                await AsyncStorage.setItem(STORAGE_USER_KEY, JSON.stringify(currentUser));
+                console.log('Usuario guardado correctamente:', currentUser);
+                router.replace('/(tabs)/finance');
+                Alert.alert('Éxito', 'Inicio de Sessión Exitoso');
+                return true;
+            } else {
+                Alert.alert('Rechazado', 'El correo o la clave son incorrectas');
+                console.log('Credenciales inválidas');
+                return false;
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Error al iniciar sesión');
+            console.error('Error al iniciar sesión:', error);
+            return false;
         }
     };
 
