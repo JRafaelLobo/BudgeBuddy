@@ -16,7 +16,7 @@ const STORAGE_KEY = '@users_profile';
 const STORAGE_USER_KEY = '@user'
 
 export default function LoginScreen() {
-
+    console.log('AsyncStorage:', AsyncStorage ? 'OK' : 'NULL');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
