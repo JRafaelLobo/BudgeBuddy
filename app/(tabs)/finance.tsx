@@ -25,6 +25,7 @@ const initialUser: User = {
   birthDate: null,
   status: null,
   name: '',
+  premium: false
 }
 export default function FinanceIndex() {
   const { colors, dark } = useTheme();

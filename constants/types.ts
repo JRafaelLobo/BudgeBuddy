@@ -4,7 +4,8 @@ export interface User {
   password: string;
   birthDate: Date | null;
   status: 'Estudia' | 'Trabaja' | null;
-  name?: string;
+  name: string;
+  premium: boolean
 }
 
 export interface Transaction {

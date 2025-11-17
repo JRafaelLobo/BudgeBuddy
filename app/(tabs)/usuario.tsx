@@ -22,6 +22,7 @@ const initial: User = {
   birthDate: null,
   status: null,
   name: '',
+  premium: false
 };
 export default function ProfileIndex() {
   const { colors, dark } = useTheme();
@@ -95,7 +96,7 @@ export default function ProfileIndex() {
 
       <View style={styles.profileCard}>
         <Text style={[styles.name, { color: colors.text }]}>
-          🧑 {profile.name || 'Default_user'}
+          🧑 {profile.name}
         </Text>
 
         <Text style={[styles.info, { color: colors.text }]}>
