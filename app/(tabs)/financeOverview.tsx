@@ -79,12 +79,12 @@ export default function FinancialEducation() {
     },
     {
       title: 'Cómo hacer un presupuesto',
-      url: 'https://www.youtube.com/watch?v=9sCVcWD1Svs',
+      url: 'https://www.youtube.com/watch?v=yC1cuPL3uD8',
       description: 'Guía paso a paso para crear un presupuesto efectivo y cumplir tus metas financieras.',
     },
     {
       title: 'Inversión para principiantes',
-      url: 'https://www.youtube.com/watch?v=9sCVcWD1Svs',
+      url: 'https://www.youtube.com/watch?v=Vg4CL6GmvrU',
       description: 'Conceptos básicos de inversión y cómo empezar a multiplicar tus ahorros.',
     },
   ];
