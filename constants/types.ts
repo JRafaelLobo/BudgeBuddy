@@ -20,7 +20,14 @@ export interface Transaction {
   | 'Ocio'
   | 'Salud'
   | 'Servicios'
+  | 'Mesada'
+  | 'Trabajo'
+  | 'Apoyo Familiar'
+  | 'Becas'
+  | 'Negocios'
+  | 'Inversiones'
   | 'Otros';
+
   date: string;
   createdAt: string;
   updatedAt?: string;

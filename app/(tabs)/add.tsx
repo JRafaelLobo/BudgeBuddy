@@ -54,16 +54,27 @@ export default function AddTransaction() {
   const [category, setCategory] = useState('');
   const [showCombo, setShowCombo] = useState(false);
 
-  const categories = [
-    'Alimentación',
-    'Transporte',
-    'Entretenimiento',
-    'Salario',
-    'Salud',
-    'Educación',
-    'Otros',
-  ];
+  
 
+   const gastos=[
+   'Comida',
+   'Transporte',
+   'Educación',
+   'Ocio',
+   'Salud',
+   'Servicios',
+    'Otros'
+   ]
+
+const ingresos=[
+   'Mesada',
+   'Trabajo',
+   'Apoyo Familiar',
+   'Becas',
+   'Negocios',
+   'Inversiones',
+   'Otros'
+]
 
   const handleSave = async () => {
     try {
@@ -123,7 +134,7 @@ export default function AddTransaction() {
           <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Elige una categoría</Text>
             <FlatList
-              data={categories}
+              data={type === 'income' ? ingresos : gastos}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -183,9 +194,9 @@ export default function AddTransaction() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, paddingTop: 50 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 20 },
-  input: { borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 12 },
+  container: { flex: 1, padding: 10, paddingTop: 50 },
+  title: { fontSize: 25, fontWeight: '700', marginBottom: 24 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 20, marginBottom: 12, borderColor: '#ccc' },
   typeRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 },
   typeButton: { borderWidth: 1, borderRadius: 8, padding: 12, width: '40%', alignItems: 'center' },
   saveButton: { padding: 14, borderRadius: 8, alignItems: 'center' },
@@ -198,7 +209,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalBox: { borderRadius: 10, padding: 20 },
-  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 10 },
+  modalTitle: { fontSize: 30, fontWeight: '700', marginBottom: 10 },
   modalItem: {
     paddingVertical: 10,
     borderBottomWidth: 0.5,
