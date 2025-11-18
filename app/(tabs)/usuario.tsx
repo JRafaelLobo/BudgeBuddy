@@ -28,6 +28,20 @@ export default function ProfileIndex() {
   const { colors, dark } = useTheme();
   const [profile, setProfile] = useState<User | null>(null);
 
+  const handleChangePremiun = async () => {
+    const newUser = {
+      id: profile?.id,
+      email: profile?.email,
+      password: profile?.password,
+      birthDate: profile?.birthDate,
+      status: profile?.status,
+      name: profile?.name,
+      premium: !profile?.premium
+    };
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
+  }
+
+
   useFocusEffect(
     React.useCallback(() => {
       const loadProfile = async () => {
@@ -136,6 +150,18 @@ export default function ProfileIndex() {
           <MaterialIcons name="logout" size={20} color={colors.background} />
           <Text style={[styles.buttonText, { color: colors.background }]}>
             Cerrar Session
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.buttonsRow}>
+
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: '#e74c3c' }]}
+          onPress={handleChangePremiun}
+        >
+          <MaterialIcons name="logout" size={20} color={colors.background} />
+          <Text style={[styles.buttonText, { color: colors.background }]}>
+            Cambiar Premiun
           </Text>
         </TouchableOpacity>
       </View>

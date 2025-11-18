@@ -8,28 +8,32 @@ const STORAGE_USER_KEY = '@user'
 
 export default function ScreenInicio() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
 
-useEffect(() => {
+  useEffect(() => {
     const loadUser = async () => {
       try {
         const json = await AsyncStorage.getItem(STORAGE_USER_KEY);
         setUser(json ? JSON.parse(json) : null);
       } catch {
         setUser(null);
+      } finally {
+        setLoading(false);
       }
     };
     loadUser();
   }, []);
 
+
   useEffect(() => {
-    if (user !== undefined) {
+    if (!loading) {
       if (user) {
         router.replace('/(tabs)/finance');
       } else {
-        router.replace('/(auth)/login'); 
+        router.replace('/(auth)/login');
       }
     }
-  }, [user]);
+  }, [loading, user]);
   return null;
 }
 

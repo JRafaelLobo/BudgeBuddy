@@ -1,17 +1,21 @@
 import { Transaction, User } from '@/constants/types';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useTheme } from '@react-navigation/native';
+import { router } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Dimensions,
   FlatList,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
+import { PieChart } from "react-native-chart-kit";
+
 
 const screenWidth = Dimensions.get('window').width - 32;
 const STORAGE_KEY_USER = '@user';
@@ -26,9 +30,6 @@ export default function Resumen() {
   const [filter, setFilter] = useState<FilterOption>('Todo');
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-
-  const STORAGE_KEY_TRANSACTIONS = `@transactions_${profile?.id || 'und'}`;
-
   // 🔹 Carga usuario
   useFocusEffect(
     useCallback(() => {
@@ -44,7 +45,6 @@ export default function Resumen() {
     }, [])
   );
 
-  // 🔹 Carga transacciones
   useFocusEffect(
     useCallback(() => {
       if (!profile?.id) return;
@@ -61,7 +61,6 @@ export default function Resumen() {
     }, [profile?.id])
   );
 
-  // 🔹 Filtrado por mes/año
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
       const d = new Date(t.date);
@@ -71,130 +70,255 @@ export default function Resumen() {
     });
   }, [transactions, filter, selectedMonth, selectedYear]);
 
-  // 🔹 Balance total
   const balance = useMemo(() => {
     return filteredTransactions.reduce(
       (acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount),
       0
     );
   }, [filteredTransactions]);
-  
-  const categorySummary = useMemo(() => {
-    const summary: Record<string, number> = {
-      Comida: 0,
-      Transporte: 0,
-      Educación: 0,
-      Ocio: 0,
-      Salud: 0,
-      Servicios: 0,
-      Otros: 0,
-    };
+
+  const categorySummaryExpense = useMemo(() => {
+    const summary: Record<string, number> = {};
 
     filteredTransactions.forEach(t => {
-      if (t.type === 'expense') summary[t.category] += t.amount;
+      if (t.type === 'expense') {
+        summary[t.category] = (summary[t.category] || 0) + t.amount;
+      }
     });
 
     return summary;
   }, [filteredTransactions]);
 
-  // 🔹 Datos para PieChart
-  const pieData = Object.entries(categorySummary)
+  const categorySummaryIncome = useMemo(() => {
+    const summary: Record<string, number> = {};
+
+    filteredTransactions.forEach(t => {
+      if (t.type === 'income') {
+        summary[t.category] = (summary[t.category] || 0) + t.amount;
+      }
+    });
+
+    return summary;
+  }, [filteredTransactions]);
+
+
+  // Gastos → tonos cálidos / alerta
+  const COLORSGastos = [
+    '#e74c3c', // rojo fuerte
+    '#f39c12', // naranja
+    '#c0392b', // rojo oscuro
+    '#d35400', // naranja oscuro
+    '#e67e22', // naranja medio
+    '#c0392b', // rojo oscuro
+    '#e74c3c', // rojo fuerte
+  ];
+
+  // Ingresos → tonos fríos / positivos
+  const COLORSIngresos = [
+    '#2ecc71', // verde
+    '#3498db', // azul
+    '#1abc9c', // verde azulado
+    '#27ae60', // verde oscuro
+    '#2980b9', // azul oscuro
+    '#16a085', // verde azulado oscuro
+    '#2ecc71', // verde
+  ];
+
+
+  const pieDataExpense = Object.entries(categorySummaryExpense)
     .filter(([, value]) => value > 0)
     .map(([name, value], index) => ({
       name,
-      amount: value,
-      color: [
-        '#f39c12',
-        '#e74c3c',
-        '#3498db',
-        '#2ecc71',
-        '#9b59b6',
-        '#1abc9c',
-        '#95a5a6',
-      ][index % 7],
-      legendFontColor: dark ? '#fff' : '#000',
+      population: value,
+      color: COLORSGastos[index % COLORSGastos.length],
+      legendFontColor: dark ? "#fff" : "#000",
+      legendFontSize: 14,
+    }));
+  const pieDataIncome = Object.entries(categorySummaryIncome)
+    .filter(([, value]) => value > 0)
+    .map(([name, value], index) => ({
+      name,
+      population: value,
+      color: COLORSIngresos[index % COLORSGastos.length],
+      legendFontColor: dark ? "#fff" : "#000",
       legendFontSize: 14,
     }));
 
+
+  const handleUpgradeToPremium = () => {
+    router.push('/(compras)/comprarPremiun');
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Resumen Financiero</Text>
+      {/* 🔹 Interfaz premium */}
+      {profile?.premium ? (
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={true}
+        >
+          <Text style={[styles.title, { color: colors.text }]}>Resumen Financiero</Text>
 
-      <View style={styles.filters}>
-        {(['Todo', 'Mes', 'Año'] as FilterOption[]).map(f => (
-          <TouchableOpacity key={f} onPress={() => setFilter(f)}>
-            <Text
-              style={[
-                styles.filterBtn,
-                { color: filter === f ? colors.primary : colors.text },
-              ]}
-            >
-              {f}
+          {/* 🔹 Filtros */}
+          <View style={styles.filters}>
+            {(['Todo', 'Mes', 'Año'] as FilterOption[]).map(f => (
+              <TouchableOpacity key={f} onPress={() => setFilter(f)}>
+                <Text
+                  style={[
+                    styles.filterBtn,
+                    { color: filter === f ? colors.primary : colors.text },
+                  ]}
+                >
+                  {f}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {filter !== 'Todo' && (
+            <Text style={{ color: colors.text, marginBottom: 8 }}>
+              {filter === 'Mes' ? `Mes: ${selectedMonth + 1}` : `Año: ${selectedYear}`}
             </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+          )}
 
-      {filter !== 'Todo' && (
-        <Text style={{ color: colors.text, marginBottom: 8 }}>
-          {filter === 'Mes' ? `Mes: ${selectedMonth + 1}` : `Año: ${selectedYear}`}
-        </Text>
-      )}
+          {/* 🔹 Balance */}
+          <Text style={[styles.balance, { color: colors.text }]}>
+            Balance filtrado: Lps {balance.toFixed(2)}
+          </Text>
 
-      <Text style={[styles.balance, { color: colors.text }]}>
-        Balance filtrado: Lps {balance.toFixed(2)}
-      </Text>
+          {/* 🔹 Gráfico */}
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Ingresos por categoría</Text>
+          {pieDataIncome.length > 0 ? (
+            <PieChart
+              data={pieDataIncome}
+              width={screenWidth}
+              height={220}
+              chartConfig={{
+                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                labelColor: (opacity = 1) => dark ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`,
+              }}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="15"
+              absolute
+            />
+          ) : (
+            <Text style={{ color: colors.text, textAlign: 'center', marginVertical: 16 }}>
+              No hay Ingresos en este período.
+            </Text>
+          )}
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        Gastos por categoría
-      </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Gastos por categoría</Text>
+          {pieDataExpense.length > 0 ? (
+            <PieChart
+              data={pieDataExpense}
+              width={screenWidth}
+              height={220}
+              chartConfig={{
+                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                labelColor: (opacity = 1) => dark ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`,
+              }}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="15"
+              absolute
+            />
+          ) : (
+            <Text style={{ color: colors.text, textAlign: 'center', marginVertical: 16 }}>
+              No hay gastos en este período.
+            </Text>
+          )}
 
-      {pieData.length > 0 ? (
-        <PieChart
-          data={pieData.map(d => ({
-            name: d.name,
-            population: d.amount,
-            color: d.color,
-            legendFontColor: d.legendFontColor,
-            legendFontSize: d.legendFontSize,
-          }))}
-          width={screenWidth}
-          height={220}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute
-        />
-      ) : (
-        <Text style={{ color: colors.text, textAlign: 'center', marginVertical: 16 }}>
-          No hay gastos en este período.
-        </Text>
-      )}
 
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        Transacciones ({filteredTransactions.length})
-      </Text>
+          {/* 🔹 Lista */}
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Transacciones ({filteredTransactions.length})
+          </Text>
 
-      <FlatList
-        data={filteredTransactions}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View style={[styles.txRow, { borderBottomColor: dark ? '#333' : '#eee' }]}>
-            <View>
-              <Text style={[styles.txDesc, { color: colors.text }]}>{item.description}</Text>
-              <Text style={[styles.txDate, { color: colors.text }]}>{item.date.slice(0, 10)}</Text>
+          <FlatList
+            data={filteredTransactions}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <View style={[styles.txRow, { borderBottomColor: dark ? '#333' : '#eee' }]}>
+                <View>
+                  <Text style={[styles.txDesc, { color: colors.text }]}>{item.description}</Text>
+                  <Text style={[styles.txDate, { color: colors.text }]}>
+                    {item.date.slice(0, 10)}
+                  </Text>
+                </View>
+
+                <Text
+                  style={[
+                    styles.txAmount,
+                    { color: item.type === 'income' ? '#2ecc71' : '#e74c3c' },
+                  ]}
+                >
+                  {item.type === 'income' ? '+' : '-'}Lps {item.amount.toFixed(2)}
+                </Text>
+              </View>
+            )}
+
+          />
+        </ScrollView>) : (
+        // 🔹 Interfaz No Premium
+        <ScrollView >
+          <View style={styles.nonPremiumContainer}>
+
+            <View style={styles.lockIconContainer}>
+              <View style={[styles.lockCircle, { backgroundColor: dark ? '#2a2a2a' : '#f5f5f5' }]}>
+                <Ionicons name="lock-closed" size={60} color="#999" />
+              </View>
             </View>
-            <Text
-              style={[
-                styles.txAmount,
-                { color: item.type === 'income' ? '#2ecc71' : '#e74c3c' },
-              ]}
+
+            <Text style={[styles.nonPremiumTitle, { color: colors.text }]}>
+              Contenido Premium
+            </Text>
+
+            <Text style={[styles.nonPremiumSubtitle, { color: dark ? '#aaa' : '#666' }]}>
+              Desbloquea análisis financieros detallados con gráficos avanzados
+            </Text>
+
+            <View style={styles.previewFeatures}>
+              <View style={styles.previewFeature}>
+                <Ionicons name="pie-chart" size={24} color="#4CAF50" />
+                <Text style={[styles.previewFeatureText, { color: colors.text }]}>
+                  Gráficos por categoría
+                </Text>
+              </View>
+              <View style={styles.previewFeature}>
+                <Ionicons name="filter" size={24} color="#4CAF50" />
+                <Text style={[styles.previewFeatureText, { color: colors.text }]}>
+                  Filtros avanzados
+                </Text>
+              </View>
+              <View style={styles.previewFeature}>
+                <Ionicons name="stats-chart" size={24} color="#4CAF50" />
+                <Text style={[styles.previewFeatureText, { color: colors.text }]}>
+                  Análisis de tendencias
+                </Text>
+              </View>
+              <View style={styles.previewFeature}>
+                <Ionicons name="document-text" size={24} color="#4CAF50" />
+                <Text style={[styles.previewFeatureText, { color: colors.text }]}>
+                  Exportación de reportes
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.upgradeButton}
+              onPress={handleUpgradeToPremium}
             >
-              {item.type === 'income' ? '+' : '-'}Lps {item.amount.toFixed(2)}
+              <Text style={styles.upgradeButtonText}>Actualizar a Premium</Text>
+            </TouchableOpacity>
+
+            <Text style={[styles.fromPrice, { color: dark ? '#888' : '#666' }]}>
+              Desde Lps 50/mes
             </Text>
           </View>
-        )}
-      />
+        </ScrollView>
+      )}
+
     </SafeAreaView>
   );
 }
@@ -215,4 +339,75 @@ const styles = StyleSheet.create({
   txDesc: { fontWeight: '500' },
   txDate: { fontSize: 12 },
   txAmount: { fontWeight: '700' },
+
+
+  // Estilos No Premium
+  nonPremiumContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  lockIconContainer: {
+    marginBottom: 24,
+  },
+  lockCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nonPremiumTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  nonPremiumSubtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  previewFeatures: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  previewFeature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 16,
+  },
+  previewFeatureText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  upgradeButton: {
+    backgroundColor: '#4CAF50',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  upgradeButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  fromPrice: {
+    marginTop: 16,
+    fontSize: 14,
+  },
 });

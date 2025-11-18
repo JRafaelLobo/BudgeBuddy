@@ -135,7 +135,7 @@ export default function FinanceIndex() {
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Mis Finanzas</Text>
         <Text style={[styles.balance, { color: colors.text }]}>
-          Balance: ${balance.toFixed(2)}
+          Balance: Lps {balance.toFixed(2)}
         </Text>
       </View>
 
