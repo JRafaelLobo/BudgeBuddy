@@ -1,7 +1,9 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, useRoute, useTheme } from '@react-navigation/native';
+import { useTheme } from '@react-navigation/native';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
+
 import {
     Alert,
     SafeAreaView,
@@ -16,15 +18,25 @@ import {
 type PaymentMethod = 'card' | 'paypal' | 'bank';
 
 const STORAGE_KEY_USER = '@user';
+const plans = {
+    monthly: {
+        price: 65,
+        period: 'mes',
+        savings: null,
+    },
+    annual: {
+        price: 600,
+        period: 'año',
+        savings: '25% de descuento',
+        monthlyEquivalent: 50,
+    },
+};
 
 export default function Payment() {
     const { colors, dark } = useTheme();
-    const navigation = useNavigation();
-    const route = useRoute();
-
-    // Obtener parámetros de la ruta
-    const { plan, price } = route.params as { plan: 'monthly' | 'annual', price: number };
-
+    const params = useLocalSearchParams<{ plan?: 'monthly' | 'annual'; price?: string }>();
+    const plan = params.plan || 'monthly';
+    const price = Number(params.price) || 99;
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
     const [loading, setLoading] = useState(false);
 
@@ -110,7 +122,7 @@ export default function Payment() {
                     [
                         {
                             text: 'Continuar',
-                            onPress: () => navigation.navigate('Resumen' as never),
+                            onPress: () => { },
                         },
                     ]
                 );
@@ -126,7 +138,7 @@ export default function Payment() {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Header con botón de regresar */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <TouchableOpacity onPress={() => { }}>
                         <MaterialIcons name="emoji-events" size={20} color={colors.background} />
                     </TouchableOpacity>
                     <Text style={[styles.headerTitle, { color: colors.text }]}>Confirmar Pago</Text>

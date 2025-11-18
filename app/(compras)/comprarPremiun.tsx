@@ -19,15 +19,15 @@ export default function PremiumSubscription() {
 
     const plans = {
         monthly: {
-            price: 99,
+            price: 65,
             period: 'mes',
             savings: null,
         },
         annual: {
-            price: 899,
+            price: 600,
             period: 'año',
             savings: '25% de descuento',
-            monthlyEquivalent: 74.92,
+            monthlyEquivalent: 50,
         },
     };
 
@@ -43,7 +43,13 @@ export default function PremiumSubscription() {
     ];
 
     const handleContinue = () => {
-        router.push('/(compras)/paymet');
+        router.push({
+            pathname: '/(compras)/paymet',
+            params: {
+              plan: 'monthly', // o 'annual'
+                price: 99,       // el precio correspondiente
+            },
+        });
     };
 
     return (
