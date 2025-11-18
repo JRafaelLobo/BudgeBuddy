@@ -39,11 +39,13 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        {user ? (
-          <Stack.Screen name="(tabs)"  />
+      <Stack screenOptions={{ headerShown: false }} initialRouteName={user ? "(tabs)" : "(auth)"}>
+        {user ? (<>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(compras)" />
+        </>
         ) : (
-          <Stack.Screen name="(auth)"/>
+          <Stack.Screen name="(auth)" />
         )}
         <Stack.Screen
           name="modal"
