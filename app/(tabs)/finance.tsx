@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import Swal from 'sweetalert2';
 
 const screenWidth = Dimensions.get('window').width - 32;
 const STORAGE_KEY_USER = '@user';
@@ -31,6 +32,8 @@ export default function FinanceIndex() {
   const { colors, dark } = useTheme();
   const [profile, setProfile] = useState<User>(initialUser);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [ingresos, setingresos]= useState(0);
+  const [gastos, setgastos]= useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -110,6 +113,51 @@ export default function FinanceIndex() {
     );
   }, [transactions]);
 
+  const resultado = useMemo(() => {
+  // Particionamos en bloques de 10
+  const bloques: { ingresos: number; gastos: number }[] = []; //los indices del bloque seran solo resultados de ingresos y gastos por cada 10 transacciones
+
+  for (let i = 0; i < transactions.length; i += 10) {
+
+    let ingresos = 0;
+    let gastos = 0;
+
+    transactions.slice(i, i+10).forEach((t) => {
+      if (t.type === "income") {
+        ingresos++;
+      } else {
+        gastos++;
+      }
+    });
+
+    bloques.push({ ingresos, gastos });
+  }
+
+  return bloques;
+}, [transactions]);
+
+useFocusEffect(
+  useCallback(() => {
+    resultado.forEach((bloque, index) => {
+      if (bloque.gastos > bloque.ingresos) {
+        Swal.fire({
+          title: 'Mas Gastos que Ingresos!',
+          text: `Más gastos (${bloque.gastos}) que ingresos (${bloque.ingresos}). Debe buscar cómo reducir sus gastos para mejorar su balance financiero.`,
+          icon: "warning",
+          confirmButtonText: "Entendido",
+        });
+      } else if (bloque.ingresos > bloque.gastos) {
+        Swal.fire({
+          title: '🎉 Mas Ingresos que Gastos!',
+          text: `Más ingresos (${bloque.ingresos}) que gastos (${bloque.gastos}). Sigue así para un mejor balance financiero!`,
+          icon: "success",
+          confirmButtonText: "Genial!",
+        });
+      }
+    });
+  }, [resultado]) 
+);
+
   const summaryByDay = useMemo(() => {
     const map: Record<string, number> = {};
     for (let i = 6; i >= 0; i--) {
@@ -135,7 +183,7 @@ export default function FinanceIndex() {
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Mis Finanzas</Text>
         <Text style={[styles.balance, { color: colors.text }]}>
-          Balance: Lps {balance.toFixed(2)}
+          Balance: Lps. {balance.toFixed(2)}
         </Text>
       </View>
 
@@ -146,7 +194,7 @@ export default function FinanceIndex() {
         <LineChart
           data={{ labels: summaryByDay.labels, datasets: [{ data: summaryByDay.data }] }}
           width={screenWidth}
-          height={200}
+          height={220}
           yAxisLabel="Lps"
           withVerticalLabels={false}
           withInnerLines={false}
@@ -197,8 +245,10 @@ export default function FinanceIndex() {
                     { color: item.type === 'income' ? '#2ecc71' : '#e74c3c' },
                   ]}
                 >
+               
                   {item.type === 'income' ? '+' : '-'}Lps {item.amount.toFixed(2)}
                 </Text>
+
 
                 <TouchableOpacity onPress={() => handleDelete(item.id)}>
                   <MaterialIcons name="delete" size={24} color="red" />
@@ -226,7 +276,7 @@ export default function FinanceIndex() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, paddingTop: 50 },
   header: { marginBottom: 12 },
-  title: { fontSize: 22, fontWeight: '700' },
+  title: { fontSize: 22, fontWeight: '700', margin: 10 },
   balance: { fontSize: 18, marginTop: 6 },
   chartWrap: { marginBottom: 12 },
   sectionTitle: { fontWeight: '600', marginBottom: 8 },
@@ -240,7 +290,7 @@ const styles = StyleSheet.create({
   txDesc: { fontWeight: '500' },
   txDate: { fontSize: 12 },
   txAmount: { fontWeight: '700' },
-  buttonsRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  buttonsRow: { flexDirection: 'row', justifyContent: 'space-between', margin: 12 },
   button: {
     padding: 12,
     borderRadius: 8,
