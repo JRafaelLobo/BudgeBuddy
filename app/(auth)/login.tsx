@@ -4,6 +4,8 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
+    Dimensions,
+    PixelRatio,
     SafeAreaView,
     StyleSheet,
     Text,
@@ -14,7 +16,11 @@ import {
 
 const STORAGE_KEY = '@users_profile';
 const STORAGE_USER_KEY = '@user'
+const { width, height } = Dimensions.get('window');
 
+const wp = (percentage: number) => (width * percentage) / 100;
+const hp = (percentage: number) => (height * percentage) / 100;
+const normalize = (size: number) => Math.round(PixelRatio.roundToNearestPixel(size));
 export default function LoginScreen() {
     console.log('AsyncStorage:', AsyncStorage ? 'OK' : 'NULL');
     const [email, setEmail] = useState('');
@@ -89,28 +95,46 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        padding: wp(5), // 5% of screen width
         justifyContent: 'center',
         backgroundColor: '#fff',
     },
-    title: { fontSize: 28, fontWeight: '700', marginBottom: 40, textAlign: 'center' },
-    inputGroup: { marginBottom: 20 },
-    label: { fontSize: 16, marginBottom: 6 },
+    title: {
+        fontSize: normalize(24), // scales with pixel density
+        fontWeight: '700',
+        marginBottom: hp(7), // 5% of screen height
+        textAlign: 'center',
+    },
+    inputGroup: { margin: hp(1) },
+    label: {
+        fontSize: normalize(14),
+        marginBottom: hp(1),
+    },
     input: {
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: 'black',
         borderRadius: 8,
-        paddingHorizontal: 12,
-        height: 44,
-        fontSize: 16,
+        paddingHorizontal: wp(3),
+        height: hp(6), // scales with screen height
+        fontSize: normalize(14),
     },
     button: {
         backgroundColor: '#2ecc71',
-        padding: 14,
-        borderRadius: 8,
+        padding: hp(2),
+        borderRadius: 10,
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: hp(5), 
+        margin: hp(1)
     },
-    buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-    link: { textAlign: 'center', marginTop: 20, color: '#3498db' },
+    buttonText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: normalize(16),
+    },
+    link: {
+        textAlign: 'center',
+        marginTop: hp(3),
+        color: '#3498db',
+        fontSize: normalize(14),
+    },
 });

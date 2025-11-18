@@ -23,6 +23,7 @@ export default function AddTransaction() {
     birthDate: null,
     status: null,
     name: '',
+    premium: false
   }
 
   useFocusEffect(

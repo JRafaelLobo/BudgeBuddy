@@ -1,24 +1,18 @@
+import { User } from '@/constants/types';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import 'react-native-reanimated';
 
 export const unstable_settings = {
   anchor: '',
 };
 const STORAGE_USER_KEY = '@user'
-interface User {
-  email: string;
-  password: string;
-  birthDate: Date | null;
-  status: 'Estudia' | 'Trabaja' | null;
-  name?: string;
-}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [user, setUser] = useState<User | null | undefined>(undefined);
