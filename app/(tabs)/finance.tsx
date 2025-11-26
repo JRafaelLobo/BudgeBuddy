@@ -15,7 +15,6 @@ import {
   View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import Swal from 'sweetalert2';
 
 const screenWidth = Dimensions.get('window').width - 32;
 const STORAGE_KEY_USER = '@user';
@@ -113,16 +112,19 @@ export default function FinanceIndex() {
     );
   }, [transactions]);
 
-  const resultado = useMemo(() => {
-  // Particionamos en bloques de 10
-  const bloques: { ingresos: number; gastos: number }[] = []; //los indices del bloque seran solo resultados de ingresos y gastos por cada 10 transacciones
+   
 
-  for (let i = 0; i < transactions.length; i += 10) {
+ const resultado = useMemo(() => {
+  const bloques: { ingresos: number; gastos: number }[] = [];
+
+  // Step through transactions in chunks of 10
+  
+    let i=0;
 
     let ingresos = 0;
     let gastos = 0;
 
-    transactions.slice(i, i+10).forEach((t) => {
+    transactions.slice(i, i + 10).forEach((t) => {
       if (t.type === "income") {
         ingresos++;
       } else {
@@ -131,32 +133,31 @@ export default function FinanceIndex() {
     });
 
     bloques.push({ ingresos, gastos });
-  }
+  
 
   return bloques;
 }, [transactions]);
 
 useFocusEffect(
   useCallback(() => {
-    resultado.forEach((bloque, index) => {
-      if (bloque.gastos > bloque.ingresos) {
-        Swal.fire({
-          title: 'Mas Gastos que Ingresos!',
-          text: `Más gastos (${bloque.gastos}) que ingresos (${bloque.ingresos}). Debe buscar cómo reducir sus gastos para mejorar su balance financiero.`,
-          icon: "warning",
-          confirmButtonText: "Entendido",
-        });
-      } else if (bloque.ingresos > bloque.gastos) {
-        Swal.fire({
-          title: '🎉 Mas Ingresos que Gastos!',
-          text: `Más ingresos (${bloque.ingresos}) que gastos (${bloque.gastos}). Sigue así para un mejor balance financiero!`,
-          icon: "success",
-          confirmButtonText: "Genial!",
-        });
-      }
-    });
-  }, [resultado]) 
+
+    if (transactions.length % 10 !== 0) return; //buscamos que la cantidad de transacciones sea divisble por 10 para saber que es un multiplo de 10
+
+    const lastBlock = resultado[resultado.length - 1];
+
+    const mensaje =
+      lastBlock.gastos > lastBlock.ingresos
+        ? ` Últimas 10 transacciones: Más gastos (${lastBlock.gastos}) que ingresos (${lastBlock.ingresos}). Debe tener cuidad con su presupuesto!`
+        : ` Últimas 10 transacciones: Más ingresos (${lastBlock.ingresos}) que gastos (${lastBlock.gastos}). Siga asi para mejorar su presupuesto!`;
+
+    Alert.alert(
+      '📊 Resumen Financiero',
+      mensaje,
+      [{ text: 'Entendido' }]
+    );
+  }, [resultado, transactions.length])
 );
+
 
   const summaryByDay = useMemo(() => {
     const map: Record<string, number> = {};
