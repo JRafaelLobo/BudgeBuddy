@@ -6,7 +6,8 @@ import React, { useCallback, useState } from 'react';
 import {
   FlatList,
   Modal,
-  StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
+  ScrollView,
+  StyleSheet, Switch, Text, TextInput, TouchableOpacity, View
 } from 'react-native';
 const STORAGE_KEY_USER = '@user';
 
@@ -60,32 +61,32 @@ export default function AddTransaction() {
   const [showRecurrenceModal, setShowRecurrenceModal] = useState(false);
   const [recurrenceCount, setRecurrenceCount] = useState('');
 
-  
 
-   const gastos=[
-   'Comida',
-   'Transporte',
-   'Educación',
-   'Ocio',
-   'Salud',
-   'Servicios',
+
+  const gastos = [
+    'Comida',
+    'Transporte',
+    'Educación',
+    'Ocio',
+    'Salud',
+    'Servicios',
     'Otros'
-   ]
+  ]
 
-const ingresos=[
-   'Mesada',
-   'Trabajo',
-   'Apoyo Familiar',
-   'Becas',
-   'Negocios',
-   'Inversiones',
-   'Otros'
-]
+  const ingresos = [
+    'Mesada',
+    'Trabajo',
+    'Apoyo Familiar',
+    'Becas',
+    'Negocios',
+    'Inversiones',
+    'Otros'
+  ]
 
   const calculateNextRecurrenceDate = (recurrenceType: 'daily' | 'weekly' | 'monthly' | 'yearly'): string => {
     const now = new Date();
     const nextDate = new Date(now);
-    
+
     switch (recurrenceType) {
       case 'daily':
         nextDate.setDate(nextDate.getDate() + 1);
@@ -100,7 +101,7 @@ const ingresos=[
         nextDate.setFullYear(nextDate.getFullYear() + 1);
         break;
     }
-    
+
     return nextDate.toISOString();
   };
 
@@ -138,167 +139,172 @@ const ingresos=[
     }
   };
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Agregar Transacción</Text>
-      <TextInput
-        placeholder="Descripción"
-        placeholderTextColor="#999"
-        style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-        value={description}
-        onChangeText={setDescription}
-      />
+    <ScrollView
+      contentContainerStyle={{ paddingBottom: 20 }}
+      showsVerticalScrollIndicator={true}
+    >
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Agregar Transacción</Text>
+        <TextInput
+          placeholder="Descripción"
+          placeholderTextColor="#999"
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          value={description}
+          onChangeText={setDescription}
+        />
 
-      <TextInput
-        placeholder="Monto"
-        placeholderTextColor="#999"
-        style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-        value={amount}
-        onChangeText={setAmount}
-        keyboardType="numeric"
-      />
+        <TextInput
+          placeholder="Monto"
+          placeholderTextColor="#999"
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          value={amount}
+          onChangeText={setAmount}
+          keyboardType="numeric"
+        />
 
 
-      {/* --- ComboBox de categoría --- */}
-      <TouchableOpacity
-        style={[styles.input, { borderColor: colors.border }]}
-        onPress={() => setShowCombo(true)}
-      >
-        <Text style={{ color: category ? colors.text : '#999' }}>
-          {category || 'Seleccionar categoría'}
-        </Text>
-      </TouchableOpacity>
-
-      <Modal visible={showCombo} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Elige una categoría</Text>
-            <FlatList
-              data={type === 'income' ? ingresos : gastos}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.modalItem}
-                  onPress={() => {
-                    setCategory(item);
-                    setShowCombo(false);
-                  }}
-                >
-                  <Text style={{ color: colors.text }}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity onPress={() => setShowCombo(false)} style={styles.closeButton}>
-              <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <View style={styles.typeRow}>
+        {/* --- ComboBox de categoría --- */}
         <TouchableOpacity
-          style={[
-            styles.typeButton,
-            {
-              borderColor: type === 'income' ? colors.primary : colors.border,
-              backgroundColor: type === 'income' ? colors.primary : 'transparent',
-            },
-          ]}
-          onPress={() => setType('income')}
+          style={[styles.input, { borderColor: colors.border }]}
+          onPress={() => setShowCombo(true)}
         >
-          <Text style={{ color: type === 'income' ? colors.background : colors.text }}>Ingreso</Text>
+          <Text style={{ color: category ? colors.text : '#999' }}>
+            {category || 'Seleccionar categoría'}
+          </Text>
         </TouchableOpacity>
 
+        <Modal visible={showCombo} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Elige una categoría</Text>
+              <FlatList
+                data={type === 'income' ? ingresos : gastos}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setCategory(item);
+                      setShowCombo(false);
+                    }}
+                  >
+                    <Text style={{ color: colors.text }}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity onPress={() => setShowCombo(false)} style={styles.closeButton}>
+                <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <View style={styles.typeRow}>
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              {
+                borderColor: type === 'income' ? colors.primary : colors.border,
+                backgroundColor: type === 'income' ? colors.primary : 'transparent',
+              },
+            ]}
+            onPress={() => setType('income')}
+          >
+            <Text style={{ color: type === 'income' ? colors.background : colors.text }}>Ingreso</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              {
+                borderColor: type === 'expense' ? colors.primary : colors.border,
+                backgroundColor: type === 'expense' ? colors.primary : 'transparent',
+              },
+            ]}
+            onPress={() => setType('expense')}
+          >
+            <Text style={{ color: type === 'expense' ? colors.background : colors.text }}>Gasto</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sección de Pago Programado */}
+        <View style={[styles.recurringSection, { borderColor: colors.border }]}>
+          <View style={styles.recurringHeader}>
+            <Text style={[styles.recurringLabel, { color: colors.text }]}>Pago Programado</Text>
+            <Switch
+              value={isRecurring}
+              onValueChange={setIsRecurring}
+              trackColor={{ false: '#767577', true: colors.primary }}
+              thumbColor={isRecurring ? '#fff' : '#f4f3f4'}
+            />
+          </View>
+
+          {isRecurring && (
+            <>
+              <TouchableOpacity
+                style={[styles.input, { borderColor: colors.border }]}
+                onPress={() => setShowRecurrenceModal(true)}
+              >
+                <Text style={{ color: colors.text }}>
+                  {recurrenceType === 'daily' && 'Diario'}
+                  {recurrenceType === 'weekly' && 'Semanal'}
+                  {recurrenceType === 'monthly' && 'Mensual'}
+                  {recurrenceType === 'yearly' && 'Anual'}
+                </Text>
+              </TouchableOpacity>
+
+              <TextInput
+                placeholder="Número de repeticiones (dejar vacío para infinito)"
+                placeholderTextColor="#999"
+                style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                value={recurrenceCount}
+                onChangeText={setRecurrenceCount}
+                keyboardType="numeric"
+              />
+            </>
+          )}
+        </View>
+
+        {/* Modal de selección de frecuencia */}
+        <Modal visible={showRecurrenceModal} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Frecuencia de repetición</Text>
+              <FlatList
+                data={[
+                  { key: 'daily', label: 'Diario' },
+                  { key: 'weekly', label: 'Semanal' },
+                  { key: 'monthly', label: 'Mensual' },
+                  { key: 'yearly', label: 'Anual' },
+                ]}
+                keyExtractor={(item) => item.key}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setRecurrenceType(item.key as 'daily' | 'weekly' | 'monthly' | 'yearly');
+                      setShowRecurrenceModal(false);
+                    }}
+                  >
+                    <Text style={{ color: colors.text }}>{item.label}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity onPress={() => setShowRecurrenceModal(false)} style={styles.closeButton}>
+                <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         <TouchableOpacity
-          style={[
-            styles.typeButton,
-            {
-              borderColor: type === 'expense' ? colors.primary : colors.border,
-              backgroundColor: type === 'expense' ? colors.primary : 'transparent',
-            },
-          ]}
-          onPress={() => setType('expense')}
+          style={[styles.saveButton, { backgroundColor: colors.primary }]}
+          onPress={handleSave}
         >
-          <Text style={{ color: type === 'expense' ? colors.background : colors.text }}>Gasto</Text>
+          <Text style={[styles.saveButtonText, { color: colors.background }]}>Guardar</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Sección de Pago Programado */}
-      <View style={[styles.recurringSection, { borderColor: colors.border }]}>
-        <View style={styles.recurringHeader}>
-          <Text style={[styles.recurringLabel, { color: colors.text }]}>Pago Programado</Text>
-          <Switch
-            value={isRecurring}
-            onValueChange={setIsRecurring}
-            trackColor={{ false: '#767577', true: colors.primary }}
-            thumbColor={isRecurring ? '#fff' : '#f4f3f4'}
-          />
-        </View>
-
-        {isRecurring && (
-          <>
-            <TouchableOpacity
-              style={[styles.input, { borderColor: colors.border }]}
-              onPress={() => setShowRecurrenceModal(true)}
-            >
-              <Text style={{ color: colors.text }}>
-                {recurrenceType === 'daily' && 'Diario'}
-                {recurrenceType === 'weekly' && 'Semanal'}
-                {recurrenceType === 'monthly' && 'Mensual'}
-                {recurrenceType === 'yearly' && 'Anual'}
-              </Text>
-            </TouchableOpacity>
-
-            <TextInput
-              placeholder="Número de repeticiones (dejar vacío para infinito)"
-              placeholderTextColor="#999"
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-              value={recurrenceCount}
-              onChangeText={setRecurrenceCount}
-              keyboardType="numeric"
-            />
-          </>
-        )}
-      </View>
-
-      {/* Modal de selección de frecuencia */}
-      <Modal visible={showRecurrenceModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Frecuencia de repetición</Text>
-            <FlatList
-              data={[
-                { key: 'daily', label: 'Diario' },
-                { key: 'weekly', label: 'Semanal' },
-                { key: 'monthly', label: 'Mensual' },
-                { key: 'yearly', label: 'Anual' },
-              ]}
-              keyExtractor={(item) => item.key}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.modalItem}
-                  onPress={() => {
-                    setRecurrenceType(item.key as 'daily' | 'weekly' | 'monthly' | 'yearly');
-                    setShowRecurrenceModal(false);
-                  }}
-                >
-                  <Text style={{ color: colors.text }}>{item.label}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity onPress={() => setShowRecurrenceModal(false)} style={styles.closeButton}>
-              <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <TouchableOpacity
-        style={[styles.saveButton, { backgroundColor: colors.primary }]}
-        onPress={handleSave}
-      >
-        <Text style={[styles.saveButtonText, { color: colors.background }]}>Guardar</Text>
-      </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
