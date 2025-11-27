@@ -117,10 +117,8 @@ export default function FinanceIndex() {
  const resultado = useMemo(() => {
   const bloques: { ingresos: number; gastos: number }[] = [];
 
-  // Step through transactions in chunks of 10
   
-    let i=0;
-
+  for (let i = 0; i < transactions.length; i += 10) {
     let ingresos = 0;
     let gastos = 0;
 
@@ -132,22 +130,27 @@ export default function FinanceIndex() {
       }
     });
 
+    
     bloques.push({ ingresos, gastos });
-  
+  }
 
   return bloques;
 }, [transactions]);
 
 useFocusEffect(
   useCallback(() => {
-
+    // Verificar que haya transacciones y que el resultado tenga bloques
+    if (transactions.length === 0 || resultado.length === 0) return;
+    
     if (transactions.length % 10 !== 0) return; //buscamos que la cantidad de transacciones sea divisble por 10 para saber que es un multiplo de 10
 
     const lastBlock = resultado[resultado.length - 1];
-
+    
+    // Verificar que lastBlock existe y tiene las propiedades necesarias
+  
     const mensaje =
       lastBlock.gastos > lastBlock.ingresos
-        ? ` Últimas 10 transacciones: Más gastos (${lastBlock.gastos}) que ingresos (${lastBlock.ingresos}). Debe tener cuidad con su presupuesto!`
+        ? ` Últimas 10 transacciones: Más gastos (${lastBlock.gastos}) que ingresos (${lastBlock.ingresos}). Debe tener cuidado con su presupuesto!`
         : ` Últimas 10 transacciones: Más ingresos (${lastBlock.ingresos}) que gastos (${lastBlock.gastos}). Siga asi para mejorar su presupuesto!`;
 
     Alert.alert(

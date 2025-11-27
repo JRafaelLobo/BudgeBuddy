@@ -6,7 +6,7 @@ import React, { useCallback, useState } from 'react';
 import {
   FlatList,
   Modal,
-  StyleSheet, Text, TextInput, TouchableOpacity, View,
+  StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 const STORAGE_KEY_USER = '@user';
 
@@ -54,6 +54,12 @@ export default function AddTransaction() {
   const [category, setCategory] = useState('');
   const [showCombo, setShowCombo] = useState(false);
 
+  // Estados para pagos programados
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceType, setRecurrenceType] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [showRecurrenceModal, setShowRecurrenceModal] = useState(false);
+  const [recurrenceCount, setRecurrenceCount] = useState('');
+
   
 
    const gastos=[
@@ -76,18 +82,51 @@ const ingresos=[
    'Otros'
 ]
 
+  const calculateNextRecurrenceDate = (recurrenceType: 'daily' | 'weekly' | 'monthly' | 'yearly'): string => {
+    const now = new Date();
+    const nextDate = new Date(now);
+    
+    switch (recurrenceType) {
+      case 'daily':
+        nextDate.setDate(nextDate.getDate() + 1);
+        break;
+      case 'weekly':
+        nextDate.setDate(nextDate.getDate() + 7);
+        break;
+      case 'monthly':
+        nextDate.setMonth(nextDate.getMonth() + 1);
+        break;
+      case 'yearly':
+        nextDate.setFullYear(nextDate.getFullYear() + 1);
+        break;
+    }
+    
+    return nextDate.toISOString();
+  };
+
   const handleSave = async () => {
     try {
-      const newTransaction = {
+      const newTransaction: any = {
         id: Date.now().toString(),
         type,
         amount: Number(amount),
         description,
         category,
         date: new Date().toISOString(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
+
+      // Agregar información de recurrencia si está activada
+      if (isRecurring) {
+        newTransaction.isRecurring = true;
+        newTransaction.recurrenceType = recurrenceType;
+        newTransaction.nextRecurrenceDate = calculateNextRecurrenceDate(recurrenceType);
+        if (recurrenceCount && !isNaN(Number(recurrenceCount))) {
+          newTransaction.recurrenceCount = Number(recurrenceCount);
+        }
+      }
+
       const json = await AsyncStorage.getItem(STORAGE_KEY_TRANSACTIONS);
       const currentTransactions = json ? JSON.parse(json) : [];
       const newTransactions = [...currentTransactions, newTransaction];
@@ -183,6 +222,76 @@ const ingresos=[
         </TouchableOpacity>
       </View>
 
+      {/* Sección de Pago Programado */}
+      <View style={[styles.recurringSection, { borderColor: colors.border }]}>
+        <View style={styles.recurringHeader}>
+          <Text style={[styles.recurringLabel, { color: colors.text }]}>Pago Programado</Text>
+          <Switch
+            value={isRecurring}
+            onValueChange={setIsRecurring}
+            trackColor={{ false: '#767577', true: colors.primary }}
+            thumbColor={isRecurring ? '#fff' : '#f4f3f4'}
+          />
+        </View>
+
+        {isRecurring && (
+          <>
+            <TouchableOpacity
+              style={[styles.input, { borderColor: colors.border }]}
+              onPress={() => setShowRecurrenceModal(true)}
+            >
+              <Text style={{ color: colors.text }}>
+                {recurrenceType === 'daily' && 'Diario'}
+                {recurrenceType === 'weekly' && 'Semanal'}
+                {recurrenceType === 'monthly' && 'Mensual'}
+                {recurrenceType === 'yearly' && 'Anual'}
+              </Text>
+            </TouchableOpacity>
+
+            <TextInput
+              placeholder="Número de repeticiones (dejar vacío para infinito)"
+              placeholderTextColor="#999"
+              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+              value={recurrenceCount}
+              onChangeText={setRecurrenceCount}
+              keyboardType="numeric"
+            />
+          </>
+        )}
+      </View>
+
+      {/* Modal de selección de frecuencia */}
+      <Modal visible={showRecurrenceModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Frecuencia de repetición</Text>
+            <FlatList
+              data={[
+                { key: 'daily', label: 'Diario' },
+                { key: 'weekly', label: 'Semanal' },
+                { key: 'monthly', label: 'Mensual' },
+                { key: 'yearly', label: 'Anual' },
+              ]}
+              keyExtractor={(item) => item.key}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setRecurrenceType(item.key as 'daily' | 'weekly' | 'monthly' | 'yearly');
+                    setShowRecurrenceModal(false);
+                  }}
+                >
+                  <Text style={{ color: colors.text }}>{item.label}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity onPress={() => setShowRecurrenceModal(false)} style={styles.closeButton}>
+              <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <TouchableOpacity
         style={[styles.saveButton, { backgroundColor: colors.primary }]}
         onPress={handleSave}
@@ -216,5 +325,21 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
   },
   closeButton: { marginTop: 10, alignItems: 'center' },
+  recurringSection: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  recurringHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  recurringLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
 
 });

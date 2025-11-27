@@ -19,12 +19,12 @@ export default function PremiumSubscription() {
 
     const plans = {
         monthly: {
-            price: 65,
+            price: 150,
             period: 'mes',
             savings: null,
         },
         annual: {
-            price: 600,
+            price: 1500,
             period: 'año',
             savings: '25% de descuento',
             monthlyEquivalent: 50,

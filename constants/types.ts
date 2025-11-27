@@ -31,5 +31,11 @@ export interface Transaction {
   date: string;
   createdAt: string;
   updatedAt?: string;
+  
+  // Campos para pagos programados
+  isRecurring?: boolean;
+  recurrenceType?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  nextRecurrenceDate?: string;
+  recurrenceCount?: number; // Número de veces que se repetirá (undefined = infinito)
 }
 
